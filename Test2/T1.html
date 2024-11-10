@@ -1,1 +1,156 @@
-dfdfdsf
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>칼싸움 게임</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>칼싸움 게임</h1>
+    <div id="start-screen">
+        <input type="text" id="player-name" placeholder="플레이어 이름 입력">
+        <button onclick="startGame()">게임 시작</button>
+    </div>
+    <div id="game-screen" class="hidden">
+        <h2 id="player-health"></h2>
+        <h2 id="computer-health"></h2>
+        <button onclick="playerAction('attack')">공격</button>
+        <button onclick="playerAction('defend')">방어</button>
+        <button onclick="useItem()">아이템 사용</button>
+        <p id="game-message"></p>
+        <p id="item-message"></p>
+        <button onclick="restartGame()" class="hidden" id="restart-button">다시하기</button>
+    </div>
+
+    <script>
+        class Player {
+            constructor(name) {
+                this.name = name;
+                this.health = 100;
+                this.items = [
+                    { name: "공격력 증가", effect: () => Math.floor(Math.random() * (50 - 30 + 1)) + 30 },
+                    { name: "방어력 증가", effect: () => Math.floor(Math.random() * (30 - 15 + 1)) + 15 },
+                    { name: "체력 회복", effect: () => Math.floor(Math.random() * (40 - 20 + 1)) + 20 }
+                ];
+            }
+
+            attack() {
+                return Math.floor(Math.random() * (30 - 10 + 1)) + 10;
+            }
+
+            defend() {
+                return Math.floor(Math.random() * (15 - 5 + 1)) + 5;
+            }
+
+            useItem() {
+                if (this.items.length > 0) {
+                    const item = this.items.pop();
+                    return item.effect();
+                } else {
+                    return null;
+                }
+            }
+        }
+
+        let player, computer;
+
+        function startGame() {
+            const playerName = document.getElementById('player-name').value;
+            player = new Player(playerName);
+            computer = new Player('컴퓨터');
+
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('restart-button').classList.add('hidden');
+            updateHealth();
+        }
+
+        function updateHealth() {
+            document.getElementById('player-health').innerText = `${player.name}의 체력: ${player.health}`;
+            document.getElementById('computer-health').innerText = `컴퓨터의 체력: ${computer.health}`;
+        }
+
+        function playerAction(action) {
+            if (action === 'attack') {
+                const damage = player.attack();
+                computer.health -= damage;
+                document.getElementById('game-message').innerText = `${player.name}가 ${damage}만큼의 피해를 입혔습니다!`;
+            } else if (action === 'defend') {
+                const defense = player.defend();
+                player.health += defense;
+                document.getElementById('game-message').innerText = `${player.name}가 ${defense}만큼의 체력을 회복했습니다!`;
+            }
+
+            if (computer.health <= 0) {
+                document.getElementById('game-message').innerText = `${player.name}가 승리했습니다!`;
+                document.getElementById('restart-button').classList.remove('hidden');
+                return;
+            }
+
+            setTimeout(computerAction, 1000);
+            updateHealth();
+        }
+
+        function useItem() {
+            const effect = player.useItem();
+            if (effect) {
+                player.health += effect;
+                document.getElementById('item-message').innerText = `${player.name}가 아이템을 사용하여 ${effect}만큼의 효과를 얻었습니다!`;
+            } else {
+                document.getElementById('item-message').innerText = "사용할 수 있는 아이템이 없습니다!";
+            }
+
+            setTimeout(computerAction, 1000);
+            updateHealth();
+        }
+
+        function computerAction() {
+            const action = Math.random() < 0.5 ? 'attack' : 'defend';
+
+            if (action === 'attack') {
+                const damage = computer.attack();
+                player.health -= damage;
+                document.getElementById('game-message').innerText = `컴퓨터가 ${damage}만큼의 피해를 입혔습니다!`;
+            } else {
+                const defense = computer.defend();
+                computer.health += defense;
+                document.getElementById('game-message').innerText = `컴퓨터가 ${defense}만큼의 체력을 회복했습니다!`;
+            }
+
+            if (player.health <= 0) {
+                document.getElementById('game-message').innerText = `컴퓨터가 승리했습니다!`;
+                document.getElementById('restart-button').classList.remove('hidden');
+                return;
+            }
+
+            updateHealth();
+        }
+
+        function restartGame() {
+            player.health = 100;
+            computer.health = 100;
+            player.items = [
+                { name: "공격력 증가", effect: () => Math.floor(Math.random() * (50 - 30 + 1)) + 30 },
+                { name: "방어력 증가", effect: () => Math.floor(Math.random() * (30 - 15 + 1)) + 15 },
+                { name: "체력 회복", effect: () => Math.floor(Math.random() * (40 - 20 + 1)) + 20 }
+            ];
+
+            document.getElementById('game-message').innerText = "";
+            document.getElementById('item-message').innerText = "";
+            document.getElementById('restart-button').classList.add('hidden');
+            updateHealth();
+        }
+    </script>
+</body>
+</html>
+
